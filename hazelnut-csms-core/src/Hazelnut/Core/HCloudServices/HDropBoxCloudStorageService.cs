@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using Hazelnut.Core.HFiles;
 
 namespace Hazelnut.Core.HCloudStorageServices {
@@ -8,7 +7,7 @@ namespace Hazelnut.Core.HCloudStorageServices {
             : base(cloudStorageServiceId) { }
 
         public override void initializeService(string jsonData) {
-            JsonTextReader reader;
+            
         }
 
         public override bool fetchFileStructure() {
