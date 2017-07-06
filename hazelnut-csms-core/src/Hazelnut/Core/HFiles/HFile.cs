@@ -6,13 +6,7 @@ namespace Hazelnut.Core.HFiles {
 
         //TODO: Folders in Google Drive are Case Sensitive, In DropBox f = F. The same as Linux vs Windows
         //TODO: Save the path with Case letters and not just the one in Lower Case
-        private string path;
-        private string fileName;
-        private string fileExtension;
-        private string mimeType;
-        private long size;
-        private DateTime lastEditDateTime;
-        private HCloudStorageService sourceCloudStorageService;
+
         /**
         * Set a time offset of x minutes.
         * Between these offsset time two different files with the same name
@@ -20,23 +14,15 @@ namespace Hazelnut.Core.HFiles {
         */
         private long offsetMinutes = 5L;
 
+        public string Path { get; set; }
+        public string FileName { get; set; }
+        public string FileExtension { get; set; }
+        public long Size { get; set; }
+        public DateTime LastEditDateTime { get; set; }
+        public HCloudStorageService SourceCloudStorageService { get; set; }
+        public string MimeType { get; set; }
         public string FullFileName {
-            get { return path + fileName + "." + fileExtension; }
-        }
-
-        public long Size {
-            get { return size; }
-            set { size = value; }
-        }
-
-        public DateTime LastEditDateTime {
-            get { return lastEditDateTime; }
-            set { lastEditDateTime = value; }
-        }
-
-        public HCloudStorageService SourceCloudStorageService {
-            get { return sourceCloudStorageService; }
-            set { sourceCloudStorageService = value; }
+            get { return Path + FileName + "." + FileExtension; }
         }
 
     }

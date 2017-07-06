@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using System;
 
-namespace Dropbox.Api.Users {
+namespace Hazelnut.Core.DropboxApiV2.Users {
 
     [JsonObject(MemberSerialization.OptIn)]
     public class Account {

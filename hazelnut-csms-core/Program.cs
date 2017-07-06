@@ -1,5 +1,5 @@
 ﻿using System;
-using Hazelnut;
+using Hazelnut.Core;
 
 namespace hazelnut_csms_core
 {

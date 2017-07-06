@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Dropbox.Api.Files {
+namespace Hazelnut.Core.DropboxApiV2.Files {
     
     public class Metadata {
 
@@ -24,26 +24,16 @@ namespace Dropbox.Api.Files {
         /// cref="Dropbox.Api.Files.FolderSharingInfo.ParentSharedFolderId" /> instead.</param>
         protected Metadata(string name,
                            string pathLower = null,
-                           string pathDisplay = null,
-                           string parentSharedFolderId = null)
+                           string pathDisplay = null)
         {
             if (name == null)
             {
                 throw new System.ArgumentNullException("name");
             }
 
-            if (parentSharedFolderId != null)
-            {
-                if (!Regex.IsMatch(parentSharedFolderId, @"\A(?:[-_0-9a-zA-Z:]+)\z"))
-                {
-                    throw new System.ArgumentOutOfRangeException("parentSharedFolderId", @"Value should match pattern '\A(?:[-_0-9a-zA-Z:]+)\z'");
-                }
-            }
-
             this.Name = name;
             this.PathLower = pathLower;
             this.PathDisplay = pathDisplay;
-            this.ParentSharedFolderId = parentSharedFolderId;
         }
 
         public Metadata()
@@ -91,29 +81,6 @@ namespace Dropbox.Api.Files {
             get
             {
                 return this as FolderMetadata;
-            }
-        }
-
-        /// <summary>
-        /// <para>Gets a value indicating whether this instance is Deleted</para>
-        /// </summary>
-        public bool IsDeleted
-        {
-            get
-            {
-                return this is DeletedMetadata;
-            }
-        }
-
-        /// <summary>
-        /// <para>Gets this instance as a <see cref="DeletedMetadata" />, or
-        /// <c>null</c>.</para>
-        /// </summary>
-        public DeletedMetadata AsDeleted
-        {
-            get
-            {
-                return this as DeletedMetadata;
             }
         }
 

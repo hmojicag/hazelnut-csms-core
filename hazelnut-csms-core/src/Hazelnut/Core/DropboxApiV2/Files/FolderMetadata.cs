@@ -1,4 +1,4 @@
-namespace Dropbox.Api.Files {
+namespace Hazelnut.Core.DropboxApiV2.Files {
     using sys = System;
     using col = System.Collections.Generic;
     using re = System.Text.RegularExpressions;
@@ -33,10 +33,8 @@ namespace Dropbox.Api.Files {
         public FolderMetadata(string name,
                               string id,
                               string pathLower = null,
-                              string pathDisplay = null,
-                              string parentSharedFolderId = null,
-                              string sharedFolderId = null)
-            : base(name, pathLower, pathDisplay, parentSharedFolderId)
+                              string pathDisplay = null)
+            : base(name, pathLower, pathDisplay)
         {
             if (id == null)
             {
@@ -47,16 +45,7 @@ namespace Dropbox.Api.Files {
                 throw new sys.ArgumentOutOfRangeException("id", "Length should be at least 1");
             }
 
-            if (sharedFolderId != null)
-            {
-                if (!re.Regex.IsMatch(sharedFolderId, @"\A(?:[-_0-9a-zA-Z:]+)\z"))
-                {
-                    throw new sys.ArgumentOutOfRangeException("sharedFolderId", @"Value should match pattern '\A(?:[-_0-9a-zA-Z:]+)\z'");
-                }
-            }
-
             this.Id = id;
-            this.SharedFolderId = sharedFolderId;
         }
 
         /// <summary>
@@ -73,10 +62,5 @@ namespace Dropbox.Api.Files {
         /// <para>A unique identifier for the folder.</para>
         /// </summary>
         public string Id { get; protected set; }
-
-        /// <summary>
-        /// <para>Deprecated. Please use <see cref="SharingInfo" /> instead.</para>
-        /// </summary>
-        public string SharedFolderId { get; protected set; }
     }
 }

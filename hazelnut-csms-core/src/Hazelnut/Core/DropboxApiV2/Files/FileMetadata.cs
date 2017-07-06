@@ -1,4 +1,4 @@
-namespace Dropbox.Api.Files {
+namespace Hazelnut.Core.DropboxApiV2.Files {
 
     using sys = System;
     using col = System.Collections.Generic;
@@ -32,16 +32,6 @@ namespace Dropbox.Api.Files {
         /// won't be returned by <see
         /// cref="Dropbox.Api.Files.Routes.FilesUserRoutes.ListFolderContinueAsync" />. This
         /// field will be null if the file or folder is not mounted.</param>
-        /// <param name="parentSharedFolderId">Deprecated. Please use <see
-        /// cref="Dropbox.Api.Files.FileSharingInfo.ParentSharedFolderId" /> or <see
-        /// cref="Dropbox.Api.Files.FolderSharingInfo.ParentSharedFolderId" /> instead.</param>
-        /// <param name="hasExplicitSharedMembers">This flag will only be present if
-        /// include_has_explicit_shared_members  is true in <see
-        /// cref="Dropbox.Api.Files.Routes.FilesUserRoutes.ListFolderAsync" /> or <see
-        /// cref="Dropbox.Api.Files.Routes.FilesUserRoutes.GetMetadataAsync" />. If this  flag
-        /// is present, it will be true if this file has any explicit shared  members. This is
-        /// different from sharing_info in that this could be true  in the case where a file
-        /// has explicit members but is not contained within  a shared folder.</param>
         /// <param name="contentHash">A hash of the file content. This field can be used to
         /// verify data integrity. For more information see our <a
         /// href="/developers/reference/content-hash">Content hash</a> page.</param>
@@ -53,10 +43,8 @@ namespace Dropbox.Api.Files {
                             ulong size,
                             string pathLower = null,
                             string pathDisplay = null,
-                            string parentSharedFolderId = null,
-                            bool? hasExplicitSharedMembers = null,
                             string contentHash = null)
-            : base(name, pathLower, pathDisplay, parentSharedFolderId)
+            : base(name, pathLower, pathDisplay)
         {
             if (id == null)
             {
@@ -97,7 +85,6 @@ namespace Dropbox.Api.Files {
             this.ServerModified = serverModified;
             this.Rev = rev;
             this.Size = size;
-            this.HasExplicitSharedMembers = hasExplicitSharedMembers;
             this.ContentHash = contentHash;
         }
 
@@ -141,16 +128,6 @@ namespace Dropbox.Api.Files {
         /// <para>The file size in bytes.</para>
         /// </summary>
         public ulong Size { get; protected set; }
-
-        /// <summary>
-        /// <para>This flag will only be present if include_has_explicit_shared_members  is
-        /// true in <see cref="Dropbox.Api.Files.Routes.FilesUserRoutes.ListFolderAsync" /> or
-        /// <see cref="Dropbox.Api.Files.Routes.FilesUserRoutes.GetMetadataAsync" />. If this
-        /// flag is present, it will be true if this file has any explicit shared  members.
-        /// This is different from sharing_info in that this could be true  in the case where a
-        /// file has explicit members but is not contained within  a shared folder.</para>
-        /// </summary>
-        public bool? HasExplicitSharedMembers { get; protected set; }
 
         /// <summary>
         /// <para>A hash of the file content. This field can be used to verify data integrity.
