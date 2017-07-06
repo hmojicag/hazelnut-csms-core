@@ -6,10 +6,10 @@ namespace Hazelnut.Core.DropboxApiV2 {
     using System.IO;
 
     public class RequestDropBoxApi {
-        private HttpClient httpClientApiDxApi;
-        private HttpClient httpClientContentDxApi;
-        private readonly string apiDxApiBaseUrl = "https://api.dropboxapi.com/";
-        private readonly string contentDxApiBaseUrl = "https://content.dropboxapi.com/";
+        private HttpClient httpClientApiDbxApi;
+        private HttpClient httpClientContentDbxApi;
+        private readonly string apiDbxApiBaseUrl = "https://api.dropboxapi.com/";
+        private readonly string contentDbxApiBaseUrl = "https://content.dropboxapi.com/";
         private string oauth2AccessToken = "";
         
         public RequestDropBoxApi(string oauth2AccessToken) {
@@ -60,23 +60,23 @@ namespace Hazelnut.Core.DropboxApiV2 {
         }
 
         private HttpClient getApiDxApiHttpClient() {
-            if(httpClientApiDxApi == null) {
-                httpClientApiDxApi = new HttpClient();
-                httpClientApiDxApi.BaseAddress = new Uri(apiDxApiBaseUrl);
-                httpClientApiDxApi.DefaultRequestHeaders.Clear();
-                httpClientApiDxApi.DefaultRequestHeaders.Add("Authorization","Bearer " + oauth2AccessToken);
+            if(httpClientApiDbxApi == null) {
+                httpClientApiDbxApi = new HttpClient();
+                httpClientApiDbxApi.BaseAddress = new Uri(apiDbxApiBaseUrl);
+                httpClientApiDbxApi.DefaultRequestHeaders.Clear();
+                httpClientApiDbxApi.DefaultRequestHeaders.Add("Authorization","Bearer " + oauth2AccessToken);
             }
-            return httpClientApiDxApi;
+            return httpClientApiDbxApi;
         }
 
         private HttpClient getContentDxApiHttpClient() {
-            if(httpClientContentDxApi == null) {
-                httpClientContentDxApi = new HttpClient();
-                httpClientContentDxApi.BaseAddress = new Uri(contentDxApiBaseUrl);
-                httpClientContentDxApi.DefaultRequestHeaders.Clear();
-                httpClientContentDxApi.DefaultRequestHeaders.Add("Authorization","Bearer " + oauth2AccessToken);
+            if(httpClientContentDbxApi == null) {
+                httpClientContentDbxApi = new HttpClient();
+                httpClientContentDbxApi.BaseAddress = new Uri(contentDbxApiBaseUrl);
+                httpClientContentDbxApi.DefaultRequestHeaders.Clear();
+                httpClientContentDbxApi.DefaultRequestHeaders.Add("Authorization","Bearer " + oauth2AccessToken);
             }
-            return httpClientContentDxApi;
+            return httpClientContentDbxApi;
         }
 
     }

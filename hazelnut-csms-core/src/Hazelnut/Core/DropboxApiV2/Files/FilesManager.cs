@@ -19,6 +19,8 @@ namespace Hazelnut.Core.DropboxApiV2.Files {
         private readonly string ENDPOINT_LIST_FOLDER = "2/files/list_folder";
         private readonly string ENDPOINT_FILES_DOWNLOAD = "2/files/download";
         private readonly string ENDPOINT_FILES_UPLOAD = "2/files/upload";
+        private readonly string ENDPOINT_GET_METADATA = "2/files/get_metadata";
+        private readonly string ENDPOINT_DELETE_V2 = "2/files/delete_v2";
 
         public FilesManager(RequestDropBoxApi dropboxHttpClient) {
             this.dropboxHttpClient = dropboxHttpClient;
@@ -38,7 +40,7 @@ namespace Hazelnut.Core.DropboxApiV2.Files {
 
         public async Task<ListFolderReponse> RequestListFolderAsync(string path) {
             ListFolderReponse listFolderResponse = null;
-            ListFolderRequestBody requestBody = new ListFolderRequestBody();
+            ListFilesRequestBody requestBody = new ListFilesRequestBody();
             requestBody.Path = path;
             requestBody.Recursive = true;
             requestBody.InclueMediaInfo = false;
@@ -59,6 +61,35 @@ namespace Hazelnut.Core.DropboxApiV2.Files {
             return listFolderResponse;
         }
 
+        public async Task<FileMetadata> GetMetadataAsync(string identifier) {
+            FilesRequestBodyIncludes requestBody = new FilesRequestBodyIncludes();
+            requestBody.Path = identifier;
+            requestBody.InclueMediaInfo = false;
+            requestBody.IncludeDeleted = false;
+            requestBody.IncludeHasExplicitSharedMembers = false;
+            StringContent stringContent = new StringContent(JsonConvert.SerializeObject(requestBody));
+            stringContent.Headers.Clear();
+            stringContent.Headers.Add("Content-Type", "application/json");
+            string jsonFileMetadata = await dropboxHttpClient.PostDropBoxApiAsync(ENDPOINT_GET_METADATA, stringContent);
+            JObject jObjFileMeta = JObject.Parse(jsonFileMetadata);
+            return decodeFile(jObjFileMeta.Root);
+        }
+
+        //Deletes a file or folder on the given path
+        //This method doesn't accept an identifier (path, id or rev)
+        //It only accepts a PATH
+        //It returns Folder of File metadata NOT a deleted metadata
+        public async Task<Metadata> DeleteAsync(string path) {
+            FilesRequestBody requestBody = new FilesRequestBody();
+            requestBody.Path = path;
+            StringContent stringContent = new StringContent(JsonConvert.SerializeObject(requestBody));
+            stringContent.Headers.Clear();
+            stringContent.Headers.Add("Content-Type", "application/json");
+            string jsonMetadata = await dropboxHttpClient.PostDropBoxApiAsync(ENDPOINT_DELETE_V2, stringContent);
+            JObject jObjFileMeta = JObject.Parse(jsonMetadata);
+            return decodeMetadata(jObjFileMeta["metadata"]);
+        }
+
         /*public async Task<ListFolderReponse> RequestListFolderContinueAsync() {
             //TODO IMPLEMENT IT
             return null;
@@ -68,7 +99,7 @@ namespace Hazelnut.Core.DropboxApiV2.Files {
         // https://www.dropbox.com/developers/documentation/http/documentation#files-download
         public async Task<MemoryStream> DownloadAsync(string identifier) {
             StringContent stringContent = new StringContent("");
-            DxAPIArgHeaderDownload dropboxApiArg = new DxAPIArgHeaderDownload();
+            DbxAPIArgHeaderDownload dropboxApiArg = new DbxAPIArgHeaderDownload();
             dropboxApiArg.Path = identifier;
             stringContent.Headers.Clear();
             stringContent.Headers.Add("Dropbox-API-Arg", JsonConvert.SerializeObject(dropboxApiArg));
@@ -77,8 +108,9 @@ namespace Hazelnut.Core.DropboxApiV2.Files {
         }
  
         public async Task<FileMetadata> UploadAsync(MemoryStream fileStream, string fullNamePath) {
+            fileStream.Position = 0; //Put stream position to the begining
             StreamContent streamContent = new StreamContent(fileStream);
-            DxAPIArgHeaderUpload dropboxApiArg = new DxAPIArgHeaderUpload();
+            DbxAPIArgHeaderUpload dropboxApiArg = new DbxAPIArgHeaderUpload();
             streamContent.Headers.Clear();
             dropboxApiArg.Path = fullNamePath;
             dropboxApiArg.Mode = "add";
@@ -98,15 +130,20 @@ namespace Hazelnut.Core.DropboxApiV2.Files {
             listFolderResponse.HasMore = (bool)jsonResponse["has_more"];
             listFolderResponse.Cursor = (string)jsonResponse["cursor"];
             foreach(JToken entry in jsonResponse["entries"].Children()) {
-                string tag = (string)entry[".tag"];
-                if(tag.Equals("folder")) {
-                    listFolderResponse.Entries.Add(decodeFolder(entry));
-                } else if(tag.Equals("file")) {
-                    listFolderResponse.Entries.Add(decodeFile(entry));
-                }
+                listFolderResponse.Entries.Add(decodeMetadata(entry));
             }
-
             return listFolderResponse;
+        }
+
+        private Metadata decodeMetadata(JToken jsonNode) {
+            string tag = (string)jsonNode[".tag"];
+            Metadata metadata = null;
+            if(tag.Equals("folder")) {
+                metadata = decodeFolder(jsonNode);
+            } else if(tag.Equals("file")) {
+                metadata = decodeFile(jsonNode);
+            }
+            return metadata;
         }
 
         private FolderMetadata decodeFolder(JToken jsonFolderNode) {
@@ -149,11 +186,13 @@ namespace Hazelnut.Core.DropboxApiV2.Files {
         }
 
         [JsonObject(MemberSerialization.OptIn)]
-        public class ListFolderRequestBody {
+        public class FilesRequestBody {
             [JsonProperty("path")]
             public string Path { get; set;}
-            [JsonProperty("recursive")]
-            public bool Recursive { get; set;}
+        }
+
+        [JsonObject(MemberSerialization.OptIn)]
+        public class FilesRequestBodyIncludes: FilesRequestBody {
             [JsonProperty("include_media_info")]
             public bool InclueMediaInfo { get; set;}
             [JsonProperty("include_deleted")]
@@ -163,14 +202,20 @@ namespace Hazelnut.Core.DropboxApiV2.Files {
         }
 
         [JsonObject(MemberSerialization.OptIn)]
-        public class DxAPIArgHeaderDownload {
+        public class ListFilesRequestBody : FilesRequestBodyIncludes {
+            [JsonProperty("recursive")]
+            public bool Recursive { get; set;}
+        }
+
+        [JsonObject(MemberSerialization.OptIn)]
+        public class DbxAPIArgHeaderDownload {
             //This is the value of the Dropbox-API-Arg
             [JsonProperty("path")]
             public string Path { get; set; }
         }
 
         [JsonObject(MemberSerialization.OptIn)]
-        public class DxAPIArgHeaderUpload : DxAPIArgHeaderDownload {
+        public class DbxAPIArgHeaderUpload : DbxAPIArgHeaderDownload {
             [JsonProperty("mode")]
             public string Mode { get; set; }
             [JsonProperty("autorename")]

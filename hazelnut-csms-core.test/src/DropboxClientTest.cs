@@ -5,7 +5,7 @@ using Hazelnut.Core.DropboxApiV2.Files;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-namespace Hazelnut.UnitTests {
+namespace Hazelnut.IntegrationTests {
     public class DropboxClientTest {
         private readonly DropboxClient dbx;
         private string ACCESS_TOKEN = "YkSN6i4mCBAAAAAAAAAAB7ElQjewrG1XmIw9W1tEWDZfofOBjMqWXKUabW76_Yb_";
