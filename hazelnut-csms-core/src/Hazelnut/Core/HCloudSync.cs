@@ -6,14 +6,35 @@ using System;
 using System.IO;
 using System.Text;
 
+using Hazelnut.Core.HCloudStorageServices;
+using Hazelnut.Core.HUsers;
+using Hazelnut.Core.HFiles;
+using System.Collections.Generic;
+
 namespace Hazelnut.Core {
     public class HCloudSync {
 
+        public enum SyncType {
+            DUPLICATED,
+            DISTRIBUTED
+        }
+
+        public HCloudSync(HUser user, List<HCloudStorageServiceData> hcssData) {
+
+        }
+
+        public HFileStructure ApplyDuplicatedSync() {
+
+            return null;
+        }
+
+        //DUMMY CODE THAT SHOULD BE DELETED
+        //FROM HERE TO ALL BELOW
         public HCloudSync() {
 
             //This is just a test for the DropBox API
-            string oauth2AccessToken = "YkSN6i4mCBAAAAAAAAAAB7ElQjewrG1XmIw9W1tEWDZfofOBjMqWXKUabW76_Yb_";
-            DropboxClient dbx = new DropboxClient(oauth2AccessToken);
+            //string oauth2AccessToken = "YkSN6i4mCBAAAAAAAAAAB7ElQjewrG1XmIw9W1tEWDZfofOBjMqWXKUabW76_Yb_";
+            //DropboxClient dbx = new DropboxClient(oauth2AccessToken);
             //getAccount(dbx).Wait();
             //ListFullDropBox(dbx).Wait();
             //DownloadAsync(dbx).Wait();
@@ -22,7 +43,7 @@ namespace Hazelnut.Core {
             //DeleteAsync(dbx).Wait();
         }
 
-        //DUMMY CODE THAT SHOULD BE DELETED
+        
         private async Task getAccount(DropboxClient dbx) {
             Account account = await dbx.GetCurrentAccountAsync();
         }

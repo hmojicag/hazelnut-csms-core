@@ -5,14 +5,15 @@ namespace Hazelnut.Core.HCloudStorageServices {
     public abstract class HCloudStorageService {
 
         public enum CloudStorageType {
+            Base,
             DropBox,
             GDrive,
             OneDrive
         };
 
         protected string cloudStorageServiceId;
-        protected HDirectoryStructure directoryStructure;
-        private bool isFetched;
+        protected HFileStructure fileStructure;
+        protected bool isFetched;
 
 
         public HCloudStorageService(string cloudStorageServiceId) {
@@ -28,14 +29,8 @@ namespace Hazelnut.Core.HCloudStorageServices {
 
 
 
-        public string CloudStorageServiceId {
-            get { return cloudStorageServiceId; }
-        }
-
-        public bool IsFetched {
-            get { return isFetched; }
-        }
-
+        public string CloudStorageServiceId { get; }
+        public bool IsFetched { get; }
         public abstract void initializeService(string jsonData);
         public abstract bool fetchFileStructure();
         public abstract bool createFile(HFile file);
