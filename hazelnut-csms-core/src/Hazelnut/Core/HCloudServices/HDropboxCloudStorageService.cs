@@ -1,11 +1,16 @@
 using Hazelnut.Core.HFiles;
 
 namespace Hazelnut.Core.HCloudStorageServices {
-    public sealed class HDropBoxCloudStorageService : HCloudStorageService {
+    public sealed class HDropboxCloudStorageService : HCloudStorageService {
 
-        public HDropBoxCloudStorageService(string cloudStorageServiceId)
+        public HDropboxCloudStorageService(string cloudStorageServiceId)
             : base(cloudStorageServiceId) { }
 
+        /* 
+            {
+                
+            }
+        */
         public override void initializeService(string jsonData) {
             
         }
