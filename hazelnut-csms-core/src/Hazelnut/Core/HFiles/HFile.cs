@@ -29,5 +29,14 @@ namespace Hazelnut.Core.HFiles {
             get { return Content != null; }
         }
 
+        public HFile DownloadContent() {
+            if (SourceCloudStorageService != null) {
+                this.Content = SourceCloudStorageService.DownloadFileContent(this);
+            } else {
+                return null;
+            }
+            return this;
+        }
+
     }
 }

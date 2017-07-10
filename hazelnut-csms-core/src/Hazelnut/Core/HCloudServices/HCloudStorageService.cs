@@ -1,7 +1,8 @@
-using Hazelnut.Core.HFiles;
-
-
 namespace Hazelnut.Core.HCloudStorageServices {
+    using System;
+    using System.IO;
+    using Hazelnut.Core.HFiles;
+
     public abstract class HCloudStorageService {
 
         public enum CloudStorageType {
@@ -11,31 +12,29 @@ namespace Hazelnut.Core.HCloudStorageServices {
             OneDrive
         };
 
-        protected string cloudStorageServiceId;
-        protected HFileStructure fileStructure;
-        protected bool isFetched;
+        protected HCloudStorageServiceData data;
 
+        public HCloudStorageService(HCloudStorageServiceData data) {
+            if(data == null || string.IsNullOrEmpty(data.HCloudStorageServiceId)) {
+                throw new ArgumentException(@"HCloudStorageServiceData and 
+                    HCloudStorageServiceId should not be null");
+            }
 
-        public HCloudStorageService(string cloudStorageServiceId) {
-            this.cloudStorageServiceId = cloudStorageServiceId;
-            retrieveCloudStorageData();
+            this.data = data;
+            IsFetched = false;
         }
 
-        private void retrieveCloudStorageData() {
-            //Go to the DB and retrieve the data
-            //Pass this data to the custom method for each service
-            initializeService("");
+        protected HFileStructure fileStructure { get; set; }
+        public string CloudStorageServiceId { 
+            get { return data.HCloudStorageServiceId; }
         }
-
-
-
-        public string CloudStorageServiceId { get; }
-        public bool IsFetched { get; }
-        public abstract void initializeService(string jsonData);
-        public abstract bool fetchFileStructure();
-        public abstract bool createFile(HFile file);
-        public abstract bool deleteFile(HFile file);
-        public abstract bool updateFile(HFile file);
-
+        public bool IsFetched { get; protected set; }
+        public CloudStorageType StorageType { get; protected set; }
+        public abstract void InitializeService();
+        public abstract bool FetchFileStructure();
+        public abstract bool CreateFile(HFile file);
+        public abstract bool DeleteFile(HFile file);
+        public abstract bool UpdateFile(HFile file);
+        public abstract MemoryStream DownloadFileContent(HFile file);
     }
 }

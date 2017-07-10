@@ -19,11 +19,27 @@ namespace Hazelnut.Core {
             DISTRIBUTED
         }
 
-        public HCloudSync(HUser user, List<HCloudStorageServiceData> hcssData) {
+        private HUser user;
+        private List<HCloudStorageService> hcssList;
 
+        public HCloudSync(HUser _user, List<HCloudStorageServiceData> hcssData) {
+            this.user = _user;
+            hcssList = new List<HCloudStorageService>();
+            foreach (HCloudStorageServiceData data in hcssData) {
+                if(data is HDropboxCloudStorageServiceData) {
+                    hcssList.Add(new HDropboxCloudStorageService(data));
+                }
+            }
         }
 
         public HFileStructure ApplyDuplicatedSync() {
+            //CONTINUE WORKING HERE WHEN YOU WAKE UP
+            //Try to make this Async: https://docs.microsoft.com/en-us/dotnet/csharp/async
+            //using Task.WhenAll
+            foreach (HCloudStorageService hcss in hcssList) {
+                hcss.InitializeService();
+                hcss.FetchFileStructure();
+            }
 
             return null;
         }
