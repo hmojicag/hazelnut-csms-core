@@ -29,24 +29,24 @@ namespace Hazelnut.Core.HCloudStorageServices {
             }
         }
 
-        public override bool FetchFileStructure() {
+        public override async Task<bool> FetchFileStructure() {
             FetchFileStructureImpl().Wait();
             return false;
         }
 
-        public override bool CreateFile(HFile file) {
+        public override async Task<bool> CreateFile(HFile file) {
             return false;
         }
         
-        public override bool DeleteFile(HFile file) {
+        public override async Task<bool> DeleteFile(HFile file) {
             return false;
         }
 
-        public override bool UpdateFile(HFile file) {
+        public override async Task<bool> UpdateFile(HFile file) {
             return false;
         }
 
-        public override MemoryStream DownloadFileContent(HFile file) {
+        public override async Task<MemoryStream> DownloadFileContent(HFile file) {
             return null;
         }
 

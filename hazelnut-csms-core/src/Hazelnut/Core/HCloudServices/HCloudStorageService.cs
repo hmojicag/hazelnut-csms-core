@@ -1,6 +1,7 @@
 namespace Hazelnut.Core.HCloudStorageServices {
     using System;
     using System.IO;
+    using System.Threading.Tasks;
     using Hazelnut.Core.HFiles;
 
     public abstract class HCloudStorageService {
@@ -31,10 +32,10 @@ namespace Hazelnut.Core.HCloudStorageServices {
         public bool IsFetched { get; protected set; }
         public CloudStorageType StorageType { get; protected set; }
         public abstract void InitializeService();
-        public abstract bool FetchFileStructure();
-        public abstract bool CreateFile(HFile file);
-        public abstract bool DeleteFile(HFile file);
-        public abstract bool UpdateFile(HFile file);
-        public abstract MemoryStream DownloadFileContent(HFile file);
+        public abstract Task<bool> FetchFileStructure();
+        public abstract Task<bool> CreateFile(HFile file);
+        public abstract Task<bool> DeleteFile(HFile file);
+        public abstract Task<bool> UpdateFile(HFile file);
+        public abstract Task<MemoryStream> DownloadFileContent(HFile file);
     }
 }
