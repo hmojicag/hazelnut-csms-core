@@ -33,9 +33,9 @@ namespace Hazelnut.Core.HCloudStorageServices {
         public CloudStorageType StorageType { get; protected set; }
         public abstract void InitializeService();
         public abstract Task<bool> FetchFileStructure();
-        public abstract Task<bool> CreateFile(HFile file);
+        public abstract Task<HFile> CreateFile(HFile file);
         public abstract Task<bool> DeleteFile(HFile file);
-        public abstract Task<bool> UpdateFile(HFile file);
+        public abstract Task<HFile> UpdateFile(HFile file);
         public abstract Task<MemoryStream> DownloadFileContent(HFile file);
     }
 }

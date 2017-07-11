@@ -1,4 +1,4 @@
-namespace Hazelnut.Core.HCloudStorageServices {
+/*namespace Hazelnut.Core.HCloudStorageServices {
     using System;
     using System.IO;
     using System.Threading.Tasks;
@@ -34,8 +34,8 @@ namespace Hazelnut.Core.HCloudStorageServices {
             return false;
         }
 
-        public override async Task<bool> CreateFile(HFile file) {
-            return false;
+        public override async Task<HFile> CreateFile(HFile file) {
+            return null;
         }
         
         public override async Task<bool> DeleteFile(HFile file) {
@@ -50,4 +50,4 @@ namespace Hazelnut.Core.HCloudStorageServices {
             return null;
         }
     }
-}
+}*/

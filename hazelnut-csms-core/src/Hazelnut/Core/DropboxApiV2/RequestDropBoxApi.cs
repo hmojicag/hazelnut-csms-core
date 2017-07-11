@@ -47,10 +47,8 @@ namespace Hazelnut.Core.DropboxApiV2 {
                 responseContent = response.Content;
                 if(!response.IsSuccessStatusCode) {
                     //I really don't want to handle this right now
-                    Console.WriteLine("Call to DropBox API failed for: " + response.RequestMessage);
-                    Console.WriteLine("Call to DropBox API failed for: " + response.RequestMessage + "\n"
-                        + response.RequestMessage);
-                    Console.WriteLine("Response msg: " + responseContent.ReadAsStringAsync());
+                    Console.WriteLine("Call to DropBox API failed for: {0} \n {1}", response.RequestMessage, responseContent);
+                    Console.WriteLine("Response msg: " + await responseContent.ReadAsStringAsync());
                 }
             } catch (Exception ex) {
                 Console.Write(ex);

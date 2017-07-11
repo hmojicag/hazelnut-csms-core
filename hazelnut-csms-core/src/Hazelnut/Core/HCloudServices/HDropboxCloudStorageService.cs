@@ -12,7 +12,6 @@ namespace Hazelnut.Core.HCloudStorageServices {
 
         private string oauth2AccessToken;
         private DropboxClient dropboxClient;
-        private List<Metadata> dbxFilesMetadata;
 
         public HDropboxCloudStorageService(HCloudStorageServiceData data)
             : base(data) { }
@@ -30,28 +29,56 @@ namespace Hazelnut.Core.HCloudStorageServices {
         }
 
         public override async Task<bool> FetchFileStructure() {
-            FetchFileStructureImpl().Wait();
-            return false;
+            List<Metadata> dbxFilesMetadata = await dropboxClient.ListFullDropBoxAsync();
+            fileStructure = new HFileStructure();
+            foreach(Metadata dbxMetadata in dbxFilesMetadata) {
+                if (dbxMetadata is FileMetadata) {
+                    HFileDropbox dbxFile = new HFileDropbox((FileMetadata)dbxMetadata, this);
+                    fileStructure.Add2FileStructure(dbxFile);
+                }
+            }
+            Console.WriteLine("File structure correctly fetched from {0}", dropboxClient.ToString());
+            return IsFetched = true;
         }
 
-        public override async Task<bool> CreateFile(HFile file) {
-            return false;
+        public override async Task<HFile> CreateFile(HFile file) {
+            if (file != null && !string.IsNullOrEmpty(file.FullFileName)) {
+                if (!file.isDownloaded) {
+                    await file.DownloadContentAsync();
+                }
+                FileMetadata newFile = await
+                    dropboxClient.UploadAsync(file.Content, file.FullFileName);
+                Console.WriteLine("File {0} created for client {1}", file.FullFileName, dropboxClient.ToString());
+                return new HFileDropbox(newFile, this);
+            }
+            return null;
         }
         
         public override async Task<bool> DeleteFile(HFile file) {
-            return false;
+            if (file == null) {
+                return false;
+            }
+            Metadata metadata = await dropboxClient.DeleteAsync(file.FullFileName);
+            Console.WriteLine("File {0} deleted for client {1}", file.FullFileName, dropboxClient.ToString());
+            return metadata != null && metadata.PathDisplay.Equals(file.FullFileName);
         }
 
-        public override async Task<bool> UpdateFile(HFile file) {
-            return false;
-        }
-
-        public override async Task<MemoryStream> DownloadFileContent(HFile file) {
+        public override async Task<HFile> UpdateFile(HFile file) {
+            if (await DeleteFile(file)) {
+                return await CreateFile(file);
+            }
             return null;
         }
 
-        private async Task FetchFileStructureImpl() {
-            dbxFilesMetadata = await dropboxClient.ListFullDropBoxAsync();
+        public override async Task<MemoryStream> DownloadFileContent(HFile file) {
+            if (file == null || !string.IsNullOrEmpty(file.FullFileName)) {
+                Task<MemoryStream> t = dropboxClient.DownloadAsync(file.FullFileName);
+                Console.WriteLine("File {0} Downloaded for client {1}", file.FullFileName, dropboxClient.ToString());
+                MemoryStream memoryStream = await t;
+                return memoryStream;
+            } else {
+                throw new ArgumentException("Hfile file instance is null or FullFileName propertie is not compliant");
+            }
         }
 
     }

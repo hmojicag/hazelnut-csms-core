@@ -8,9 +8,20 @@ using System.Collections.Generic;
             fileStructure = new Dictionary<string, HFile>();
         }
 
-        public void Add2FileStructure(string fullPath, HFile file) {
-
+        public void Add2FileStructure(HFile file) {
+            fileStructure.Add(file.FullFileName, file);
         }
 
+        public bool RemoveFromFileStructure(string fullPath) {
+            return fileStructure.Remove(fullPath);
+        }
+
+        public bool Contains(string fullPath) {
+            return fileStructure.ContainsKey(fullPath);
+        }
+        
+        public HFile getFile(string path) {
+            return fileStructure[path];
+        }
     }
 }

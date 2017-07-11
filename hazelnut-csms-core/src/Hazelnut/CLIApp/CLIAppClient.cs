@@ -61,7 +61,7 @@ namespace Hazelnut.CLIApp {
                 //Synchronize Drives
                 hCloudSync = new HCloudSync(coreUser, hcssdata);
                 if(syncType == HCloudSync.SyncType.DUPLICATED) {
-                    HFileStructure baseFileStructure = hCloudSync.ApplyDuplicatedSync();
+                    HFileStructure baseFileStructure = hCloudSync.ApplyDuplicationAsync().Result;
                     //Update DB
                 }
                 
