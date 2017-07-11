@@ -2,7 +2,10 @@
 The core of the Hazelnut Cloud Storage Management Service
 
 Navigate to your repos folder `$YourReposFolder` and
-Clone the repo: `git clone https://github.com/hmojicag/hazelnut-csms-core.git`
+Clone the repo:
+```javascript
+git clone https://github.com/hmojicag/hazelnut-csms-core.git`
+```
 
 # Using with Visual Studio Code
 Open Visual Studio Code, Menu File -> Open Folder.
@@ -10,6 +13,8 @@ Select `$YourReposFolder/hazelnut-csms-core/`
 
 # To run the CLI App client
 Go to `$YourReposFolder/hazelnut-csms-core/hazelnut-csms-core`
+The CLI App Client expects that the .db file exists on `$HOME/HazelnutCSMS/hazelnut-csms.db`
+This .db file will be created automagically in future releases by the CLIApp or possible an Electron GUI.
 
 ```javascript
 dotnet restore
