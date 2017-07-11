@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Hazelnut.Core.HCloudStorageServices;
 
 namespace Hazelnut.Core.HFiles {
@@ -14,19 +15,31 @@ namespace Hazelnut.Core.HFiles {
         * on different drives will be treated the same
         */
         protected readonly long offsetMinutes = 5L;
-        public string Path { get; set; }
-        public string FileName { get; set; }
-        public string FileExtension { get; set; }
-        public long Size { get; set; }
+        public string Path { get; set; }                    //Without file name, with trailing slash
+        public string FileName { get; set; }                //Including File Extension
+        public ulong Size { get; set; }
         public DateTime LastEditDateTime { get; set; }
         public HCloudStorageService SourceCloudStorageService { get; set; }
         public string MimeType { get; set; }
         public MemoryStream Content { get; set; }
         public string FullFileName {
-            get { return Path + FileName + "." + FileExtension; }
+            get { return Path + FileName; }
+        }
+        public string FileExtension {
+            get { return FileName.Substring(FileName.LastIndexOf('.')); }
         }
         public bool isDownloaded {
             get { return Content != null; }
+        }
+
+        public async Task<HFile> DownloadContentAsync() {
+            if (SourceCloudStorageService != null) {
+                this.Content = await SourceCloudStorageService.DownloadFileContent(this);
+            } else {
+                string msg = "Cloud Storage Service for file " + this.Path + "is Null";
+                throw new NullReferenceException(msg);
+            }
+            return this;
         }
 
     }

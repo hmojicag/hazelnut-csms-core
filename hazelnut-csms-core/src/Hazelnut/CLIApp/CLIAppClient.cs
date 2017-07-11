@@ -9,6 +9,7 @@ namespace Hazelnut.CLIApp {
     using Hazelnut.CLIApp.Model;
     using Hazelnut.CLIApp.Exceptions;
     using Hazelnut.Core;
+    using Hazelnut.Core.HFiles;
 
     public class CLIAppClient {
         private int HUserId { get; }
@@ -60,9 +61,10 @@ namespace Hazelnut.CLIApp {
                 //Synchronize Drives
                 hCloudSync = new HCloudSync(coreUser, hcssdata);
                 if(syncType == HCloudSync.SyncType.DUPLICATED) {
-                    hCloudSync.ApplyDuplicatedSync();
+                    HFileStructure baseFileStructure = hCloudSync.ApplyDuplicationAsync().Result;
+                    //Update DB
                 }
-                //Update DB
+                
             }
         }
     }

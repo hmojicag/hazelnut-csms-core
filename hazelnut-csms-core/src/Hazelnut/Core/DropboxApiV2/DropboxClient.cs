@@ -13,6 +13,7 @@ namespace Hazelnut.Core.DropboxApiV2 {
         private RequestDropBoxApi dropboxHttpClient;
         private FilesManager filesManager;
         private UsersManager usersManager;
+        private Account cacheAccount;
 
         public DropboxClient(string oauth2AccessToken) {
             dropboxHttpClient = new RequestDropBoxApi(oauth2AccessToken);
@@ -58,6 +59,14 @@ namespace Hazelnut.Core.DropboxApiV2 {
                 usersManager = new UsersManager(dropboxHttpClient);
             }
             return usersManager;
+        }
+
+        public override string ToString() {
+            if (cacheAccount == null) {
+                cacheAccount = GetCurrentAccountAsync().Result;
+            }
+            return "Dropbox client for account: " + cacheAccount.AccountId
+                + " - " + cacheAccount.Name + " - " + cacheAccount.Email;
         }
 
     }

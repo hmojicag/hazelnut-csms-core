@@ -19,11 +19,27 @@ namespace Hazelnut.Core {
             DISTRIBUTED
         }
 
-        public HCloudSync(HUser user, List<HCloudStorageServiceData> hcssData) {
+        private HUser user;
+        private List<HCloudStorageService> hcssList;
 
+        public HCloudSync(HUser _user, List<HCloudStorageServiceData> hcssData) {
+            this.user = _user;
+            hcssList = new List<HCloudStorageService>();
+            foreach (HCloudStorageServiceData data in hcssData) {
+                if(data is HDropboxCloudStorageServiceData) {
+                    hcssList.Add(new HDropboxCloudStorageService(data));
+                }
+            }
         }
 
-        public HFileStructure ApplyDuplicatedSync() {
+        public async Task<HFileStructure> ApplyDuplicationAsync() {
+            //CONTINUE WORKING HERE WHEN YOU WAKE UP
+            //Try to make this Async: https://docs.microsoft.com/en-us/dotnet/csharp/async
+            //using Task.WhenAll
+            foreach (HCloudStorageService hcss in hcssList) {
+                hcss.InitializeService();
+                await hcss.FetchFileStructure();
+            }
 
             return null;
         }
@@ -41,6 +57,19 @@ namespace Hazelnut.Core {
             //UploadAsync(dbx).Wait();
             //GetMetadata(dbx).Wait();
             //DeleteAsync(dbx).Wait();
+        }
+
+        private async Task dummyFileOpDbx(HCloudStorageService hcss) {
+            HFileGDrive gDriveTestFile = new HFileGDrive();
+            gDriveTestFile.FileName = "gDriveTestFile.txt";
+            gDriveTestFile.Path = "/";
+            gDriveTestFile.Content = new MemoryStream(new byte[] {72, 65, 90, 65});
+            HFile newTestFile = await hcss.CreateFile(gDriveTestFile);
+            newTestFile.Content =  new MemoryStream(new byte[] {72, 65, 90, 65, 46});
+            HFile updateTestFile = await hcss.UpdateFile(newTestFile);
+            await updateTestFile.DownloadContentAsync();
+            Console.WriteLine("File Downloaded: {0}", updateTestFile.Content.ToString());
+            await hcss.DeleteFile(updateTestFile);
         }
 
         
