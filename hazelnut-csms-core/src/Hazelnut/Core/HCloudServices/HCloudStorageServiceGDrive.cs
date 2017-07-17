@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Net.Http;
 using System.Reflection.Metadata.Ecma335;
 using Hazelnut.CLIApp.Exceptions;
+using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 
 namespace Hazelnut.Core.HCloudStorageServices {
     using System;
@@ -26,7 +27,6 @@ namespace Hazelnut.Core.HCloudStorageServices {
         private readonly string ApplicationName = "Hazelnut CSMS";
         private Dictionary<string, string> folderStructure;
         private DriveService gDriveService;
-        private const string FOLDER_MIMETYPE = "application/vnd.google-apps.folder";
         private const string REQUEST_FILE_FIELDS = "id, name, mimeType, modifiedTime, trashed, " +
                                                  "parents, fileExtension, size";        
 
@@ -57,7 +57,7 @@ namespace Hazelnut.Core.HCloudStorageServices {
                 var result = await request.ExecuteAsync();
                 foreach (var file in result.Files) {
                     //Remember that in Google Drive, folders are files with a different mime type
-                    if (file.MimeType.Equals(FOLDER_MIMETYPE)) {
+                    if (file.MimeType.Equals(AcceptedContentTypes["folder"])) {
                         //store id/file (folder) pair
                         folderList.Add(file.Id, file);
                     }
@@ -80,6 +80,11 @@ namespace Hazelnut.Core.HCloudStorageServices {
 
             if (file == null) {
                 throw new ArgumentException("HFile is null");
+            }
+
+            if (fileStructure.Contains(file.FullFileName)) {
+                Console.WriteLine("The file already exists in this Google Drive account: {0}", file.FullFileName);
+                return fileStructure.getFile(file.FullFileName);
             }
             
             if (!IsFetched) {
@@ -164,7 +169,7 @@ namespace Hazelnut.Core.HCloudStorageServices {
             var fileMetadata = new GData.File()
             {
                 Name = folderName,
-                MimeType = FOLDER_MIMETYPE,
+                MimeType = AcceptedContentTypes["folder"],
                 Parents = new List<string> {
                     parentFolderId
                 }
@@ -183,7 +188,14 @@ namespace Hazelnut.Core.HCloudStorageServices {
         }
 
         private string GuessContentTypeByExt(string extension) {
-            return "text/plain";
+            string contentType;
+            var extensionNoDot = extension.TrimStart('.');
+            if (AcceptedContentTypes.ContainsKey(extensionNoDot)) {
+                contentType = AcceptedContentTypes[extensionNoDot];
+            } else {
+                contentType = AcceptedContentTypes["default"];
+            }
+            return contentType;
         }
 
         public override async Task<bool> DeleteFile(HFile file) {
@@ -264,7 +276,7 @@ namespace Hazelnut.Core.HCloudStorageServices {
             var filesInFolder = new Dictionary<string, HFile>();
             try {
                 foreach (var file in files) {
-                    if (file.MimeType.Equals(FOLDER_MIMETYPE)) {
+                    if (file.MimeType.Equals(AcceptedContentTypes["folder"])) {
                         var subFolderPath = currentPath + file.Name + "/";
                         folderStructure.Add(subFolderPath, file.Id);
                         if (hierarchyDictionary.ContainsKey(file.Id)) {
@@ -290,5 +302,33 @@ namespace Hazelnut.Core.HCloudStorageServices {
             return filesInFolder;
         }
         
+        
+        private readonly Dictionary<string, string> AcceptedContentTypes = new Dictionary<string, string>() {
+            {"xls","application/vnd.ms-excel"},
+            {"xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
+            {"xml","text/xml"},
+            {"ods","application/vnd.oasis.opendocument.spreadsheet"},
+            {"csv","text/plain"},
+            {"tmpl","text/plain"},
+            {"pdf","application/pdf"},
+            {"jpg","image/jpeg"},
+            {"png","image/png"},
+            {"gif","image/gif"},
+            {"bmp","image/bmp"},
+            {"txt","text/plain"},
+            {"doc","application/msword"},
+            {"js","text/js"},
+            {"swf","application/x-shockwave-flash"},
+            {"mp3","audio/mpeg"},
+            {"zip","application/zip"},
+            {"rar","application/rar"},
+            {"tar","application/tar"},
+            {"arj","application/arj"},
+            {"cab","application/cab"},
+            {"html","text/html"},
+            {"htm","text/html"},
+            {"default","application/octet-stream"},
+            {"folder","application/vnd.google-apps.folder"}
+        };
     }
 }
