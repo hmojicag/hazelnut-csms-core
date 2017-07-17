@@ -10,6 +10,7 @@ using Hazelnut.Core.HCloudStorageServices;
 using Hazelnut.Core.HUsers;
 using Hazelnut.Core.HFiles;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Hazelnut.Core {
     public class HCloudSync {
@@ -41,9 +42,6 @@ namespace Hazelnut.Core {
             foreach (HCloudStorageService hcss in hcssList) {
                 hcss.InitializeService();
                 await hcss.FetchFileStructure();
-                if (hcss is HCloudStorageServiceGDrive) {
-                    dummyFolderFileCreateGDrive(hcss).Wait();
-                }
             }
 
             return null;
@@ -64,13 +62,18 @@ namespace Hazelnut.Core {
             //DeleteAsync(dbx).Wait();
         }
         
-        private async Task dummyFolderFileCreateGDrive(HCloudStorageService hcss) {
+        private async Task dummyFolderOpGDrive(HCloudStorageService hcss) {
             HFileDropbox dbxFile = new HFileDropbox();
             dbxFile.Path = "/autoCreatedFolder/anotherOne/OhhShitCommeOn/";
             dbxFile.FileName = "dummyFile.txt";
             dbxFile.Content = new MemoryStream(new byte[] {72, 65, 90, 65});
             HFile newTestFile = await hcss.CreateFile(dbxFile);
-            Console.WriteLine("File created: {0}", newTestFile.FullFileName);
+            newTestFile.Content =  new MemoryStream(new byte[] {72, 65, 90, 65, 46});
+            HFile updatedFile = await hcss.UpdateFile(newTestFile);
+            MemoryStream contentStream = await hcss.DownloadFileContent(updatedFile);
+            contentStream.Position = 0;
+            Console.WriteLine("HCloudSync test. File downloaded from GDrive: " + byteArray2String(contentStream.ToArray()));
+            await hcss.DeleteFile(updatedFile);
         }
 
         private async Task dummyFileOpDbx(HCloudStorageService hcss) {
@@ -86,6 +89,9 @@ namespace Hazelnut.Core {
             await hcss.DeleteFile(updateTestFile);
         }
 
+        private string byteArray2String(byte[] array) {
+            return array.Aggregate("", (current, b) => current + Convert.ToString(Convert.ToChar(b)));
+        }
         
         private async Task getAccount(DropboxClient dbx) {
             Account account = await dbx.GetCurrentAccountAsync();

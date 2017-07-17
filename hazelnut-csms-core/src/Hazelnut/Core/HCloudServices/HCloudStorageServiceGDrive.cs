@@ -1,11 +1,3 @@
-
-
-using System.Linq.Expressions;
-using System.Net.Http;
-using System.Reflection.Metadata.Ecma335;
-using Hazelnut.CLIApp.Exceptions;
-using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
-
 namespace Hazelnut.Core.HCloudStorageServices {
     using System;
     using System.IO;
@@ -18,6 +10,9 @@ namespace Hazelnut.Core.HCloudStorageServices {
     using Hazelnut.Core.HFiles;
     using System.Text;
     using System.Threading;
+    using System.Net.Http;
+    using Google.Apis.Download;
+    using Hazelnut.CLIApp.Exceptions;
 
     public sealed class HCloudStorageServiceGDrive : HCloudStorageService {
         public HCloudStorageServiceGDrive(HCloudStorageServiceData data)
@@ -132,8 +127,11 @@ namespace Hazelnut.Core.HCloudStorageServices {
                 gDriveFileMetadata, streamContent, contentType);
             request.Fields = REQUEST_FILE_FIELDS;
             await request.UploadAsync();
-            var newGDriveFile = request.ResponseBody;
-            return new HFileGDrive(newGDriveFile, fullPath, this);
+            var newFile = request.ResponseBody;
+            Console.WriteLine("File {0} created in Google Drive", file.FullFileName);
+            var newGDriveFile = new HFileGDrive(newFile, fullPath, this);
+            fileStructure.Add2FileStructure(newGDriveFile);
+            return newGDriveFile;
         }
 
         private string RecursiveFolderCreation(string folderPath) {
@@ -199,15 +197,105 @@ namespace Hazelnut.Core.HCloudStorageServices {
         }
 
         public override async Task<bool> DeleteFile(HFile file) {
+
+            if (file == null) {
+                Console.WriteLine("Cannot delete null Google Drive file.");
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(file.FullFileName)) {
+                Console.WriteLine("ERROR trying to dele file from Google Drive. Something is wrong with the full path name");
+                return false;
+            }
+
+            string gDriveFileId;
+            if (file is HFileGDrive) {
+                gDriveFileId = (file as HFileGDrive).GDriveId;
+            } else {
+                if (!IsFetched) {
+                    await FetchFileStructure();
+                }
+                if (fileStructure.Contains(file.FullFileName)) {
+                    var file2Delete = fileStructure.getFile(file.FullFileName) as HFileGDrive;
+                    gDriveFileId = file2Delete.GDriveId;
+                } else {
+                    Console.WriteLine("The file to delete does not exist in Google Drive: {0}", file.FullFileName);
+                    return false;
+                }
+            }
+
+            var request = gDriveService.Files.Delete(gDriveFileId);
+            string responseBody = request.Execute();
+            
+            //If successful, this method returns an empty response body.
+            if (string.IsNullOrEmpty(responseBody)) {
+                Console.WriteLine("File {0} deleted from Google Drive", file.FullFileName);
+                fileStructure.RemoveFromFileStructure(file.FullFileName);
+                return true;
+            }
+            
+            Console.WriteLine("Something went wrong trying to delete file {0} from Google Drive", file.FullFileName);
             return false;
         }
 
         public override async Task<HFile> UpdateFile(HFile file) {
-            return null;
+            HFile updatedFile = null;
+            if (await DeleteFile(file)) {
+                updatedFile = await CreateFile(file);
+            } else {
+                Console.WriteLine("Error trying to update file: {0}", file.FullFileName);
+            }
+            return updatedFile;
         }
 
         public override async Task<MemoryStream> DownloadFileContent(HFile file) {
-            return null;
+
+            if (file == null) {
+                Console.WriteLine("HFile is null. Can't download.");
+                return null;
+            }
+
+            if (!IsFetched) {
+                await FetchFileStructure();
+            }
+            
+            HFileGDrive file2Download;
+            if (fileStructure.Contains(file.FullFileName)) {
+                file2Download = fileStructure.getFile(file.FullFileName) as HFileGDrive;
+            } else {
+                Console.WriteLine("Can't download the file {0} cuz it does not exists in the Google Drive account",
+                    file.FullFileName);
+                return null;
+            }
+
+            if (file2Download.isDownloaded) {
+                return file2Download.Content;
+            }
+
+            var contentStream = new MemoryStream();
+            var request = gDriveService.Files.Get(file2Download.GDriveId);
+            
+            request.MediaDownloader.ProgressChanged+=
+                (IDownloadProgress progress) =>
+                {
+                    switch (progress.Status)
+                    {
+                        case DownloadStatus.Completed:
+                        {
+                            Console.WriteLine("Download complete for file: {0}", file.FullFileName);
+                            break;
+                        }
+                        case DownloadStatus.Failed:
+                        {
+                            Console.WriteLine("Download failed for file: {0}", file.FullFileName);
+                            break;
+                        }
+                    }
+                };
+            Console.WriteLine("Downloading file: {0}", file.FullFileName);
+            await request.DownloadAsync(contentStream);
+            
+            return contentStream;
         }
 
         private void gDriveAuthenticationFlow() {
