@@ -8,22 +8,22 @@ namespace Hazelnut.Core.HCloudStorageServices {
     using Hazelnut.Core.DropboxApiV2;
     using Hazelnut.Core.DropboxApiV2.Files;
 
-    public sealed class HDropboxCloudStorageService : HCloudStorageService {
+    public sealed class HCloudStorageServiceDropbox : HCloudStorageService {
 
         private string oauth2AccessToken;
         private DropboxClient dropboxClient;
 
-        public HDropboxCloudStorageService(HCloudStorageServiceData data)
+        public HCloudStorageServiceDropbox(HCloudStorageServiceData data)
             : base(data) { }
 
         public override void InitializeService() {
-            if (data is HDropboxCloudStorageServiceData) {
-                HDropboxCloudStorageServiceData dbxData = (HDropboxCloudStorageServiceData)data;
+            if (data is HCloudStorageServiceDataDropbox) {
+                HCloudStorageServiceDataDropbox dbxData = (HCloudStorageServiceDataDropbox)data;
                 oauth2AccessToken = dbxData.Oauth2AccessToken;
                 dropboxClient = new DropboxClient(oauth2AccessToken);
             } else {
                 throw new ArgumentException(
-                    "Data passed in is not of type HDropboxCloudStorageServiceData"
+                    "Data passed in is not of type HCloudStorageServiceDataDropbox"
                 );
             }
         }

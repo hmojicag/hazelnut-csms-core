@@ -26,7 +26,11 @@ namespace Hazelnut.Core.HFiles {
             get { return Path + FileName; }
         }
         public string FileExtension {
-            get { return FileName.Substring(FileName.LastIndexOf('.')); }
+            get {
+                var dotIndex = FileName.LastIndexOf('.');
+                var ext = (dotIndex < 0) ? string.Empty : FileName.Substring(dotIndex);
+                return ext;
+            }
         }
         public bool isDownloaded {
             get { return Content != null; }

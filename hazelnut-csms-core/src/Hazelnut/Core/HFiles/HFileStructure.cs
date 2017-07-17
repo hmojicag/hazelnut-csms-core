@@ -2,26 +2,30 @@ namespace Hazelnut.Core.HFiles {
 using System.Collections.Generic;
 
     public class HFileStructure {
-        private Dictionary<string, HFile> fileStructure;
+        private readonly Dictionary<string, HFile> _fileStructure;
 
         public HFileStructure() {
-            fileStructure = new Dictionary<string, HFile>();
+            _fileStructure = new Dictionary<string, HFile>();
+        }
+
+        public HFileStructure(Dictionary<string, HFile> fileStructure) {
+            _fileStructure = fileStructure;
         }
 
         public void Add2FileStructure(HFile file) {
-            fileStructure.Add(file.FullFileName, file);
+            _fileStructure.Add(file.FullFileName, file);
         }
 
         public bool RemoveFromFileStructure(string fullPath) {
-            return fileStructure.Remove(fullPath);
+            return _fileStructure.Remove(fullPath);
         }
 
         public bool Contains(string fullPath) {
-            return fileStructure.ContainsKey(fullPath);
+            return _fileStructure.ContainsKey(fullPath);
         }
         
         public HFile getFile(string path) {
-            return fileStructure[path];
+            return _fileStructure[path];
         }
     }
 }

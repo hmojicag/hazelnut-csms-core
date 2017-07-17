@@ -21,8 +21,13 @@ namespace hazelnut_csms_core
             }
             Console.WriteLine("--Starting Hazelnut CSMS CLIAppClient for user {0}--", huserId);
             CLIAppClient cliAppClient = new CLIAppClient(huserId);
-            cliAppClient.ExecuteSync();
-            Console.WriteLine("--Hazelnut CSMS CLIAppClient Finished--");
+            try {
+                cliAppClient.ExecuteSync();
+                Console.WriteLine("--Hazelnut CSMS CLIAppClient Finished--");
+            } catch (Exception ex) {
+                Console.WriteLine(ex);
+                Console.WriteLine("--ERROR, something went wrong and CSMS CLIAppClient had to exit--");
+            }
         }
     }
 }

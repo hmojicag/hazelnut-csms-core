@@ -26,8 +26,10 @@ namespace Hazelnut.Core {
             this.user = _user;
             hcssList = new List<HCloudStorageService>();
             foreach (HCloudStorageServiceData data in hcssData) {
-                if(data is HDropboxCloudStorageServiceData) {
-                    hcssList.Add(new HDropboxCloudStorageService(data));
+                if(data is HCloudStorageServiceDataDropbox) {
+                    hcssList.Add(new HCloudStorageServiceDropbox(data));
+                } else if (data is HCloudStorageServiceDataGDrive) {
+                    hcssList.Add(new HCloudStorageServiceGDrive(data));
                 }
             }
         }
@@ -39,6 +41,9 @@ namespace Hazelnut.Core {
             foreach (HCloudStorageService hcss in hcssList) {
                 hcss.InitializeService();
                 await hcss.FetchFileStructure();
+                if (hcss is HCloudStorageServiceGDrive) {
+                    dummyFolderFileCreateGDrive(hcss).Wait();
+                }
             }
 
             return null;
@@ -57,6 +62,15 @@ namespace Hazelnut.Core {
             //UploadAsync(dbx).Wait();
             //GetMetadata(dbx).Wait();
             //DeleteAsync(dbx).Wait();
+        }
+        
+        private async Task dummyFolderFileCreateGDrive(HCloudStorageService hcss) {
+            HFileDropbox dbxFile = new HFileDropbox();
+            dbxFile.Path = "/autoCreatedFolder/anotherOne/OhhShitCommeOn/";
+            dbxFile.FileName = "dummyFile.txt";
+            dbxFile.Content = new MemoryStream(new byte[] {72, 65, 90, 65});
+            HFile newTestFile = await hcss.CreateFile(dbxFile);
+            Console.WriteLine("File created: {0}", newTestFile.FullFileName);
         }
 
         private async Task dummyFileOpDbx(HCloudStorageService hcss) {

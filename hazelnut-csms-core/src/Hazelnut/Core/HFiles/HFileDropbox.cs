@@ -7,13 +7,13 @@ namespace Hazelnut.Core.HFiles {
 
         }
 
-        public HFileDropbox(FileMetadata dbxFileMetadata, HDropboxCloudStorageService dbxCSS) {
-            this.FileName = dbxFileMetadata.Name;
-            string fullPath = dbxFileMetadata.PathDisplay;
-            this.Path = fullPath.Substring(0, fullPath.LastIndexOf('/')+1);
-            this.Size = dbxFileMetadata.Size;
-            this.LastEditDateTime = dbxFileMetadata.ServerModified;
-            this.SourceCloudStorageService = dbxCSS;
+        public HFileDropbox(FileMetadata dbxFileMetadata, HCloudStorageServiceDropbox dbxCSS) {
+            FileName = dbxFileMetadata.Name;
+            var fullPath = dbxFileMetadata.PathDisplay;
+            Path = fullPath.Substring(0, fullPath.LastIndexOf('/')+1);
+            Size = dbxFileMetadata.Size;
+            LastEditDateTime = dbxFileMetadata.ServerModified;
+            SourceCloudStorageService = dbxCSS;
         }
 
         public HFileDropbox(FileMetadata dbxFileMetadata) 

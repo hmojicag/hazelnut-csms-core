@@ -1,3 +1,5 @@
+using Hazelnut.CLIApp.Tools;
+
 namespace Hazelnut.CLIApp {
     using System;
     using System.Linq;
@@ -10,6 +12,7 @@ namespace Hazelnut.CLIApp {
     using Hazelnut.CLIApp.Exceptions;
     using Hazelnut.Core;
     using Hazelnut.Core.HFiles;
+    using Google.Apis.Util.Store;
 
     public class CLIAppClient {
         private int HUserId { get; }
@@ -46,11 +49,13 @@ namespace Hazelnut.CLIApp {
                 hcssdata = new List<HCloudStorageServiceData>();
                 foreach(HCloudStorageDrive drive in modelUser.HCloudStorageDrives) {
                     if (drive.Type.Equals("Dropbox")) {
-                        HDropboxCloudStorageServiceData dbxData = 
-                            JsonConvert.DeserializeObject<HDropboxCloudStorageServiceData>(drive.Config);
+                        var dbxData = JsonConvert.DeserializeObject<HCloudStorageServiceDataDropbox>(drive.Config);
                         hcssdata.Add(dbxData);
                     } else if (drive.Type.Equals("GDrive")) {
-                        //Will Do somethinghere soon
+                        var gDriveData = JsonConvert.DeserializeObject<HCloudStorageServiceDataGDrive>(drive.Config);
+                        //TODO: Change the FileDataStore obj for a GDriveDataStore one you implement it
+                        gDriveData.DataStore = new FileDataStore("/Users/hmojica/HazelnutCSMS/.credentials/drive-dotnet-quickstart.json", true);
+                        hcssdata.Add(gDriveData);
                     } else if (drive.Type.Equals("OneDrive")) {
                         //Will Do somethinghere soon
                     } else if (drive.Type.Equals("HazelnutBaseFileStructure")) {
