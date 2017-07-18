@@ -67,8 +67,17 @@ namespace Hazelnut.Core.HCloudStorageServices {
                 }
                 pageToken = result.NextPageToken;
             } while (pageToken != null);
+
+            var ok = CreateFileStructure(folderList, hierarchyDictionary);
+
+            if (ok) {
+                FileStructure.CloudStorageId = CloudStorageServiceId;
+                Console.WriteLine("File structure fetched correctly from Google Drive");
+            } else {
+                Console.WriteLine("An error happened trying to fetch the file structure from Google Drive");
+            }
             
-            return CreateFileStructure(folderList, hierarchyDictionary);
+            return ok;
         }
 
         public override async Task<HFile> CreateFile(HFile file) {
@@ -77,9 +86,9 @@ namespace Hazelnut.Core.HCloudStorageServices {
                 throw new ArgumentException("HFile is null");
             }
 
-            if (fileStructure.Contains(file.FullFileName)) {
+            if (FileStructure.Contains(file.FullFileName)) {
                 Console.WriteLine("The file already exists in this Google Drive account: {0}", file.FullFileName);
-                return fileStructure.getFile(file.FullFileName);
+                return FileStructure.GetFile(file.FullFileName);
             }
             
             if (!IsFetched) {
@@ -91,7 +100,8 @@ namespace Hazelnut.Core.HCloudStorageServices {
             try {
                 fullPath = fullFileName.Substring(0, fullFileName.LastIndexOf('/')+1);
             } catch (Exception ex) {
-                throw new FormatException("The field: " + fullFileName + " is not correctly formatted");
+                Console.WriteLine("The field: {0} is not correctly formatted. Error:\n {1}", fullFileName, ex);
+                return null;
             }
             
             var parentFolderId = "";
@@ -130,12 +140,11 @@ namespace Hazelnut.Core.HCloudStorageServices {
             var newFile = request.ResponseBody;
             Console.WriteLine("File {0} created in Google Drive", file.FullFileName);
             var newGDriveFile = new HFileGDrive(newFile, fullPath, this);
-            fileStructure.Add2FileStructure(newGDriveFile);
+            FileStructure.Add2FileStructure(newGDriveFile);
             return newGDriveFile;
         }
 
         private string RecursiveFolderCreation(string folderPath) {
-            string folderId;
             if (folderStructure.ContainsKey(folderPath)) {
                 return folderStructure[folderPath];
             }
@@ -215,8 +224,8 @@ namespace Hazelnut.Core.HCloudStorageServices {
                 if (!IsFetched) {
                     await FetchFileStructure();
                 }
-                if (fileStructure.Contains(file.FullFileName)) {
-                    var file2Delete = fileStructure.getFile(file.FullFileName) as HFileGDrive;
+                if (FileStructure.Contains(file.FullFileName)) {
+                    var file2Delete = FileStructure.GetFile(file.FullFileName) as HFileGDrive;
                     gDriveFileId = file2Delete.GDriveId;
                 } else {
                     Console.WriteLine("The file to delete does not exist in Google Drive: {0}", file.FullFileName);
@@ -230,7 +239,7 @@ namespace Hazelnut.Core.HCloudStorageServices {
             //If successful, this method returns an empty response body.
             if (string.IsNullOrEmpty(responseBody)) {
                 Console.WriteLine("File {0} deleted from Google Drive", file.FullFileName);
-                fileStructure.RemoveFromFileStructure(file.FullFileName);
+                FileStructure.RemoveFromFileStructure(file.FullFileName);
                 return true;
             }
             
@@ -260,8 +269,8 @@ namespace Hazelnut.Core.HCloudStorageServices {
             }
             
             HFileGDrive file2Download;
-            if (fileStructure.Contains(file.FullFileName)) {
-                file2Download = fileStructure.getFile(file.FullFileName) as HFileGDrive;
+            if (FileStructure.Contains(file.FullFileName)) {
+                file2Download = FileStructure.GetFile(file.FullFileName) as HFileGDrive;
             } else {
                 Console.WriteLine("Can't download the file {0} cuz it does not exists in the Google Drive account",
                     file.FullFileName);
@@ -354,7 +363,7 @@ namespace Hazelnut.Core.HCloudStorageServices {
                 RecursiveFileStructureBuildImpl(rootPath, hierarchyDictionary[rootFolderid], hierarchyDictionary);
             
             //Set FileStructure
-            fileStructure = new HFileStructure(fileStructureDict);
+            FileStructure = new HFileStructure(fileStructureDict);
             IsFetched = true;
             return true;
         }

@@ -30,14 +30,15 @@ namespace Hazelnut.Core.HCloudStorageServices {
 
         public override async Task<bool> FetchFileStructure() {
             List<Metadata> dbxFilesMetadata = await dropboxClient.ListFullDropBoxAsync();
-            fileStructure = new HFileStructure();
+            FileStructure = new HFileStructure();
             foreach(Metadata dbxMetadata in dbxFilesMetadata) {
                 if (dbxMetadata is FileMetadata) {
                     HFileDropbox dbxFile = new HFileDropbox((FileMetadata)dbxMetadata, this);
-                    fileStructure.Add2FileStructure(dbxFile);
+                    FileStructure.Add2FileStructure(dbxFile);
                 }
             }
             Console.WriteLine("File structure correctly fetched from {0}", dropboxClient.ToString());
+            FileStructure.CloudStorageId = CloudStorageServiceId;
             return IsFetched = true;
         }
 

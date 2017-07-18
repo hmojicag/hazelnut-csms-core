@@ -3,6 +3,6 @@ namespace Hazelnut.Core.HCloudStorageServices {
     [JsonObject(MemberSerialization.OptIn)]
     public abstract class HCloudStorageServiceData {
         [JsonProperty("HCloudStorageServiceId")]
-        public string HCloudStorageServiceId { get; set; }
+        public int HCloudStorageServiceId { get; set; }
     }
 }

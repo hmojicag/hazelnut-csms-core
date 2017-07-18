@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Hazelnut.CLIApp.Tools;
 
 namespace Hazelnut.CLIApp {
@@ -20,14 +21,14 @@ namespace Hazelnut.CLIApp {
             HUserId = hUserId;
         }
 
-        public void ExecuteSync() {
+        public async Task ExecuteOperationsAsync() {
             using(HazelnutCLIContext hCLIContext = new HazelnutCLIContext()) {
 
                 //Most important variables
                 Hazelnut.Core.HUsers.HUser coreUser;
                 List<HCloudStorageServiceData> hcssdata;
-                HCloudSync hCloudSync;
-                HCloudSync.SyncType syncType;
+                HCloudOperations hCloudOperations;
+                HCloudOperations.OpType opType;
 
                 //Get the data from SQLite DB
                 var modelUsers = hCLIContext.HUsers
@@ -41,14 +42,20 @@ namespace Hazelnut.CLIApp {
                         + "Not registered in the Hazelnut CSMS CLIApp");
                 }
                 HUser modelUser = modelUsers[0];
-                if (!Enum.TryParse<HCloudSync.SyncType>(modelUser.SyncType, out syncType)) {
+                if (!Enum.TryParse<HCloudOperations.OpType>(modelUser.SyncType, out opType)) {
                     throw new InvalidUserParamsException("User " + HUserId
                         + "Has No Valid Sync Type: " + modelUser.SyncType);
                 }
                 coreUser = new Hazelnut.Core.HUsers.HUser(modelUser.HUserId, modelUser.HUserName);
                 hcssdata = new List<HCloudStorageServiceData>();
+                var baseFileStructures = new List<HFileStructure>();
                 foreach(HCloudStorageDrive drive in modelUser.HCloudStorageDrives) {
-                    if (drive.Type.Equals("Dropbox")) {
+                    if (drive.Type.Equals("Base-DUPLICATE")) {
+                        var baseData = JsonConvert.DeserializeObject<HCloudStorageServiceDataBaseDuplicate>(drive.Config);
+                        var baseFs = new HFileStructure(baseData.GetBaseFSAsHFileStructure());
+                        baseFs.CloudStorageId = drive.HCloudStorageDriveId;
+                        baseFileStructures.Add(baseFs);
+                    } else if (drive.Type.Equals("Dropbox")) {
                         var dbxData = JsonConvert.DeserializeObject<HCloudStorageServiceDataDropbox>(drive.Config);
                         hcssdata.Add(dbxData);
                     } else if (drive.Type.Equals("GDrive")) {
@@ -64,9 +71,9 @@ namespace Hazelnut.CLIApp {
                 }
 
                 //Synchronize Drives
-                hCloudSync = new HCloudSync(coreUser, hcssdata);
-                if(syncType == HCloudSync.SyncType.DUPLICATED) {
-                    HFileStructure baseFileStructure = hCloudSync.ApplyDuplicationAsync().Result;
+                hCloudOperations = new HCloudOperations(coreUser, hcssdata);
+                if(opType == HCloudOperations.OpType.DUPLICATED) {
+                    var baseFileStructure = await hCloudOperations.ApplyDuplicationAsync(baseFileStructures);
                     //Update DB
                 }
                 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
     public class HFileStructure {
         private readonly Dictionary<string, HFile> _fileStructure;
+        public int CloudStorageId { get; set; }
 
         public HFileStructure() {
             _fileStructure = new Dictionary<string, HFile>();
@@ -24,8 +25,16 @@ using System.Collections.Generic;
             return _fileStructure.ContainsKey(fullPath);
         }
         
-        public HFile getFile(string path) {
+        public HFile GetFile(string path) {
             return _fileStructure[path];
+        }
+
+        public void SetFile(string path, HFile file) {
+            _fileStructure[path] = file;
+        }
+
+        public IEnumerable<string> GetFilesFullPath() {
+            return _fileStructure.Keys;
         }
     }
 }

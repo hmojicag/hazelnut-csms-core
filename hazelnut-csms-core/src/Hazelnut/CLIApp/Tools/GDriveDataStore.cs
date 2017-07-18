@@ -8,7 +8,7 @@ namespace Hazelnut.CLIApp.Tools {
     
     public class GDriveDataStore : IDataStore {
         
-        private readonly string jsonName = "GDriveCredentials";
+        //private readonly string jsonName = "GDriveCredentials";
         private HazelnutCLIContext _hazelnutCliContext;
         private int _hCloudStorageServiceId;
 

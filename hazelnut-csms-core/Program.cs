@@ -1,6 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Google.Apis.Logging;
 using Hazelnut.CLIApp;
+using Hazelnut.Core.HCloudStorageServices;
+using Hazelnut.Core.HFiles;
+using Newtonsoft.Json;
 
 namespace hazelnut_csms_core
 {
@@ -20,15 +26,43 @@ namespace hazelnut_csms_core
                 }
             }
             Console.WriteLine("--Starting Hazelnut CSMS CLIAppClient for user {0}--", huserId);
-            CLIAppClient cliAppClient = new CLIAppClient(huserId);
+            var cliAppClient = new CLIAppClient(huserId);
             try {
-                cliAppClient.ExecuteSync();
+                ExecuteCLIOperations(cliAppClient);
                 Console.WriteLine("--Hazelnut CSMS CLIAppClient Finished--");
             } catch (Exception ex) {
                 Console.WriteLine(ex);
                 Console.WriteLine("--ERROR, something went wrong and CSMS CLIAppClient had to exit--");
             }
         }
+
+        private static void ExecuteCLIOperations(CLIAppClient cliAppClient) {
+            cliAppClient.ExecuteOperationsAsync().Wait();
+        }
+
+        /*private static void serializeTest() {
+            var FileStructure = new Dictionary<string, HFile>();
+            HFile dbxFile = new HFileDropbox() {
+                Path = "/",
+                FileName = "lol.txt",
+                Size = 12L,
+                MimeType = "text/plain",
+                LastEditDateTime = DateTime.Now,
+                SourceCloudStorageService = new HCloudStorageServiceDropbox(new HCloudStorageServiceDataDropbox() {
+                    HCloudStorageServiceId = "lol",
+                    Oauth2AccessToken = "lmao"
+                })
+            };
+            dbxFile.SourceCloudStorageService.InitializeService();
+            FileStructure.Add("/lol.txt", dbxFile);
+            
+            string json = JsonConvert.SerializeObject(FileStructure);
+            var dbxHCSS = JsonConvert.DeserializeObject<Dictionary<string, HFileBase>>(json, new JsonSerializerSettings() {
+                TypeNameHandling = TypeNameHandling.All
+            });
+            Console.WriteLine(json);
+        }*/
+        
     }
 }
     
