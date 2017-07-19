@@ -8,36 +8,37 @@ namespace Hazelnut.Core.HCloudStorageServices {
     using Hazelnut.Core.DropboxApiV2;
     using Hazelnut.Core.DropboxApiV2.Files;
 
-    public sealed class HDropboxCloudStorageService : HCloudStorageService {
+    public sealed class HCloudStorageServiceDropbox : HCloudStorageService {
 
         private string oauth2AccessToken;
         private DropboxClient dropboxClient;
 
-        public HDropboxCloudStorageService(HCloudStorageServiceData data)
+        public HCloudStorageServiceDropbox(HCloudStorageServiceData data)
             : base(data) { }
 
         public override void InitializeService() {
-            if (data is HDropboxCloudStorageServiceData) {
-                HDropboxCloudStorageServiceData dbxData = (HDropboxCloudStorageServiceData)data;
+            if (data is HCloudStorageServiceDataDropbox) {
+                HCloudStorageServiceDataDropbox dbxData = (HCloudStorageServiceDataDropbox)data;
                 oauth2AccessToken = dbxData.Oauth2AccessToken;
                 dropboxClient = new DropboxClient(oauth2AccessToken);
             } else {
                 throw new ArgumentException(
-                    "Data passed in is not of type HDropboxCloudStorageServiceData"
+                    "Data passed in is not of type HCloudStorageServiceDataDropbox"
                 );
             }
         }
 
         public override async Task<bool> FetchFileStructure() {
             List<Metadata> dbxFilesMetadata = await dropboxClient.ListFullDropBoxAsync();
-            fileStructure = new HFileStructure();
+            FileStructure = new HFileStructure();
             foreach(Metadata dbxMetadata in dbxFilesMetadata) {
                 if (dbxMetadata is FileMetadata) {
                     HFileDropbox dbxFile = new HFileDropbox((FileMetadata)dbxMetadata, this);
-                    fileStructure.Add2FileStructure(dbxFile);
+                    FileStructure.Add2FileStructure(dbxFile);
                 }
             }
             Console.WriteLine("File structure correctly fetched from {0}", dropboxClient.ToString());
+            FileStructure.CloudStorageId = CloudStorageServiceId;
             return IsFetched = true;
         }
 
@@ -64,10 +65,14 @@ namespace Hazelnut.Core.HCloudStorageServices {
         }
 
         public override async Task<HFile> UpdateFile(HFile file) {
+            HFile updatedFile = null;
             if (await DeleteFile(file)) {
-                return await CreateFile(file);
+                updatedFile = await CreateFile(file);
+                Console.WriteLine("File Updated with a delete and create combo");
+            } else {
+                Console.WriteLine("Error trying to update file: {0}", file.FullFileName);
             }
-            return null;
+            return updatedFile;
         }
 
         public override async Task<MemoryStream> DownloadFileContent(HFile file) {

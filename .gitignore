@@ -1,3 +1,4 @@
 bin/
 obj/
 hazelnut-csms-core/Migrations/
+.idea/
