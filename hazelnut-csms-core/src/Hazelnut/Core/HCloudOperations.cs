@@ -61,9 +61,13 @@ namespace Hazelnut.Core {
             var baseFileStructure = baseFileStructures[0];
             var actionList = new List<HCloudAction>();
             GetActionList4Duplication(baseFileStructure, actionList);
-            await ApplyActionList(actionList);
-
-            return baseFileStructure;
+            if (actionList.Count > 0) {
+                await ApplyActionList(actionList);
+                return baseFileStructure;
+            } else {
+                Console.WriteLine("No changes detected...");
+                return null;
+            }
         }
 
         private async Task ApplyActionList(List<HCloudAction> actionList) {
