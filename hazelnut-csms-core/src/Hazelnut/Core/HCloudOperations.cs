@@ -25,7 +25,7 @@ namespace Hazelnut.Core {
         * Between these offsset time two different files with the same name
         * on different drives will be treated the same
         */
-        private const int OffsetMilliseconds = 5000;
+        private const int OffsetMilliseconds = 300000;//5min Time span
 
         private HUser user;
         private List<HCloudStorageService> hcssList;
@@ -61,9 +61,37 @@ namespace Hazelnut.Core {
             var baseFileStructure = baseFileStructures[0];
             var actionList = new List<HCloudAction>();
             GetActionList4Duplication(baseFileStructure, actionList);
-            
+            await ApplyActionList(actionList);
 
-            return null;
+            return baseFileStructure;
+        }
+
+        private async Task ApplyActionList(List<HCloudAction> actionList) {
+            var actionListTasks = new List<Task>();
+            foreach (var action in actionList) {
+                Task actionTask;
+                switch (action.Action2Apply) {
+                    case HCloudAction.ActionType.CREATE:
+                        actionTask = action.CloudStorageService.CreateFile(action.ActionFile);
+                    break;
+                            
+                    case HCloudAction.ActionType.UPDATE:
+                        actionTask = action.CloudStorageService.UpdateFile(action.ActionFile);
+                    break;
+
+                    case HCloudAction.ActionType.REMOVE:
+                        actionTask = action.CloudStorageService.DeleteFile(action.ActionFile);
+                    break;
+                        
+                    default:
+                        Console.WriteLine("Unknow HCloudAction.ActionType: {0}", action.Action2Apply);
+                        actionTask = Task.CompletedTask;
+                    break;
+                }
+                actionListTasks.Add(actionTask);
+            }
+            //Wait for all the threads/tasks to complete
+            await Task.WhenAll(actionListTasks);
         }
 
         //Both arguments will be updated inside this method
@@ -77,14 +105,22 @@ namespace Hazelnut.Core {
                 foreach (var fileFullPath in cloudStorageService.FileStructure.GetFilesFullPath()) {
                     //Compare every file in the Cloud Storage against the Base Metadata
                     HFile fileInCloudStorageService = cloudStorageService.FileStructure.GetFile(fileFullPath);
-                    if (baseFileStructure.Contains(fileFullPath)
-                        && AreDifferent(baseFileStructure.GetFile(fileFullPath), fileInCloudStorageService)) {
-                        //Looks like this file was updated, if it has a more recent edit date the update it
-                        var mostRecentFile = GetMostRecentFile(baseFileStructure.GetFile(fileFullPath),
-                            fileInCloudStorageService);
-                        baseFileStructure.SetFile(fileFullPath, mostRecentFile);
+                    if (baseFileStructure.Contains(fileFullPath)) {
+                        if (AreDifferent(baseFileStructure.GetFile(fileFullPath), fileInCloudStorageService)) {
+                            //The file was updated in this Cloud Storage drive.
+                            //Update the BaseFS accordingly
+                            var mostRecentFile = GetMostRecentFile(baseFileStructure.GetFile(fileFullPath),
+                                fileInCloudStorageService);
+                            baseFileStructure.SetFile(mostRecentFile);
+                        } else {
+                            //The files are identical in terms of the offset time span and size
+                            //Do NOTHING
+                        }
                     } else {
-                        //Base Metadata does not exist for this file. This file is New.
+                        //Base Metadata does not exist for this file (New File added).
+                        //Or an even newer file was added via other drive
+                        //Ex. A new file was added to Dropbox at 18/July/2017 23:00:00
+                        //And the same file was added to Google Drive
                         //Add a reference to the Base Metadata.
                         baseFileStructure.Add2FileStructure(fileInCloudStorageService);
                     }

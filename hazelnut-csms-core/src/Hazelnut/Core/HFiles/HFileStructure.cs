@@ -29,8 +29,8 @@ using System.Collections.Generic;
             return _fileStructure[path];
         }
 
-        public void SetFile(string path, HFile file) {
-            _fileStructure[path] = file;
+        public void SetFile(HFile file) {
+            _fileStructure[file.FullFileName] = file;
         }
 
         public IEnumerable<string> GetFilesFullPath() {

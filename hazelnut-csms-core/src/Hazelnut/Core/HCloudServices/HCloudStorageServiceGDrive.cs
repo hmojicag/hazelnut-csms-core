@@ -153,15 +153,16 @@ namespace Hazelnut.Core.HCloudStorageServices {
             string currentFolderName;
             string remainingPath;
             if (!folderPath.EndsWith("/")) {
-                throw new FormatException("Folder path incorrectly formatted. It should end " + 
-                                            "with a '/' but found: " + folderPath);
+                Console.WriteLine("Folder path incorrectly formatted. It should end with a '/' but found: {0}", folderPath);
+                return null;
             }
             var noTrailingSlashPath = folderPath.TrimEnd('/');//Get rid of last slash
             try {
                 currentFolderName = noTrailingSlashPath.Substring(noTrailingSlashPath.LastIndexOf('/') + 1);
                 remainingPath = noTrailingSlashPath.Substring(0, noTrailingSlashPath.LastIndexOf('/') + 1);
             } catch (Exception ex) {
-                throw new FormatException("Something went wrong parsing folder path: \n" + ex);
+                Console.WriteLine("Something went wrong parsing folder path:\n{0}", ex);
+                return null;
             }
 
             //Call recursively in case we also need to create the parent for this one
@@ -189,7 +190,7 @@ namespace Hazelnut.Core.HCloudStorageServices {
                 Console.WriteLine("Folder created: {0} with id {1}", folderName, file.Id);
             } catch (Exception ex) {
                 Console.WriteLine("Unexpected error trying to create folder {0}.\n {1}", folderName, ex);
-                throw new HttpRequestException("Unexpected error trying to create folder " + folderName);
+                return null;
             }
             return file.Id;
         }
@@ -251,6 +252,7 @@ namespace Hazelnut.Core.HCloudStorageServices {
             HFile updatedFile = null;
             if (await DeleteFile(file)) {
                 updatedFile = await CreateFile(file);
+                Console.WriteLine("File Updated with a delete and create combo");
             } else {
                 Console.WriteLine("Error trying to update file: {0}", file.FullFileName);
             }

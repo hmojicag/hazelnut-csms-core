@@ -17,5 +17,22 @@ namespace Hazelnut.Core.HCloudStorageServices {
             }
             return hFileStructure;
         }
+
+        public void SetBaseFSFromHFileStructure(HFileStructure fs) {
+            BaseFileStructure = new Dictionary<string, HFileBase>();
+            foreach (var path in fs.GetFilesFullPath()) {
+                var file = fs.GetFile(path);
+                var newHFileBase = new HFileBase() {
+                    FileName = file.FileName,
+                    Path = file.Path,
+                    Size = file.Size,
+                    LastEditDateTime = file.LastEditDateTime,
+                    MimeType = file.MimeType
+                };
+                BaseFileStructure.Add(path, newHFileBase);
+            }
+            
+        }
+        
     }
 }

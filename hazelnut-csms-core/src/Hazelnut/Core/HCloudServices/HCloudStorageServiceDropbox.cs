@@ -65,10 +65,14 @@ namespace Hazelnut.Core.HCloudStorageServices {
         }
 
         public override async Task<HFile> UpdateFile(HFile file) {
+            HFile updatedFile = null;
             if (await DeleteFile(file)) {
-                return await CreateFile(file);
+                updatedFile = await CreateFile(file);
+                Console.WriteLine("File Updated with a delete and create combo");
+            } else {
+                Console.WriteLine("Error trying to update file: {0}", file.FullFileName);
             }
-            return null;
+            return updatedFile;
         }
 
         public override async Task<MemoryStream> DownloadFileContent(HFile file) {

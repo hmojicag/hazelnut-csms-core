@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Hazelnut.CLIApp.Tools;
 
@@ -65,8 +66,6 @@ namespace Hazelnut.CLIApp {
                         hcssdata.Add(gDriveData);
                     } else if (drive.Type.Equals("OneDrive")) {
                         //Will Do somethinghere soon
-                    } else if (drive.Type.Equals("HazelnutBaseFileStructure")) {
-                        //Restore here the Base File Structure
                     }
                 }
 
@@ -75,6 +74,19 @@ namespace Hazelnut.CLIApp {
                 if(opType == HCloudOperations.OpType.DUPLICATED) {
                     var baseFileStructure = await hCloudOperations.ApplyDuplicationAsync(baseFileStructures);
                     //Update DB
+                    var baseModelFS = modelUser.HCloudStorageDrives.First(
+                        drive => drive.Type.Equals("Base-DUPLICATE"));
+                    if (baseModelFS != null) {
+                        var baseData = JsonConvert.DeserializeObject<HCloudStorageServiceDataBaseDuplicate>(baseModelFS.Config);
+                        baseData.SetBaseFSFromHFileStructure(baseFileStructure);
+                        baseModelFS.Config = JsonConvert.SerializeObject(baseData);
+                        hCLIContext.HCloudStorageDrives.Update(baseModelFS);
+                        await hCLIContext.SaveChangesAsync();
+                    } else {
+                        Console.WriteLine("ERROR. Weird, Base-DUPLICATE dissapeared...");
+                    }
+                    
+                    
                 }
                 
             }
