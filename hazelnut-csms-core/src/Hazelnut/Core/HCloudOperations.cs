@@ -25,7 +25,7 @@ namespace Hazelnut.Core {
         * Between these offsset time two different files with the same name
         * on different drives will be treated the same
         */
-        private const int OffsetMilliseconds = 300000;//5min Time span
+        private const double OffsetMilliseconds = 300000;//5min Time span
 
         private HUser user;
         private List<HCloudStorageService> hcssList;
@@ -74,6 +74,12 @@ namespace Hazelnut.Core {
             var actionListTasks = new List<Task>();
             foreach (var action in actionList) {
                 Task actionTask;
+                /* TODO: For files which size will exceed 5 minutes (OffsetMilliseconds) upload time.
+                   TODO: Upload with a temporal name and make and update of the name in all drives.
+                   TODO: For the source HCSS rename to tempo and then back to its name.
+                   TODO: This way all files will show a similar LastEditDateTime
+                   TODO: In Fact, you should do it for every file uploaded.
+                */
                 switch (action.Action2Apply) {
                     case HCloudAction.ActionType.CREATE:
                         actionTask = action.CloudStorageService.CreateFile(action.ActionFile);
@@ -113,8 +119,18 @@ namespace Hazelnut.Core {
                         if (AreDifferent(baseFileStructure.GetFile(fileFullPath), fileInCloudStorageService)) {
                             //The file was updated in this Cloud Storage drive.
                             //Update the BaseFS accordingly
+                            //TODO: IT THINKS THE MOST RECENT FILE IS THE BASE FILE
+                            //TODO: AND BECAUSE OF THAT IT IS NOT UPDATING. FIX!!
                             var mostRecentFile = GetMostRecentFile(baseFileStructure.GetFile(fileFullPath),
                                 fileInCloudStorageService);
+                            
+                            if (mostRecentFile is HFileBase) {
+                               //Is not normal that the most recent file is an HFilaBase, log it
+                                Console.WriteLine("WARNING. Most recent file is an HFileBase. "
+                                                  + "HCloudOperations.GetActionList4Duplication(). " 
+                                                    + "File: " + mostRecentFile.FullFileName );
+                            }
+                            
                             baseFileStructure.SetFile(mostRecentFile);
                         } else {
                             //The files are identical in terms of the offset time span and size
@@ -218,18 +234,18 @@ namespace Hazelnut.Core {
                 return null;
             }
 
-            if (Math.Abs((file1.LastEditDateTime - file2.LastEditDateTime).Milliseconds)
+            HFile mostRecentFile;
+
+            if (Math.Abs((file1.LastEditDateTime - file2.LastEditDateTime).TotalMilliseconds)
                 <= OffsetMilliseconds) {
-                //Both files are equal in terms of the TimeSpan Offste
-                return file1;
+                //Both files are equal in terms of the TimeSpan Offset
+                mostRecentFile = file1;
             }
 
-            if (file2.LastEditDateTime > file1.LastEditDateTime) {
-                //File 2 seems to have a Later date
-                return file2;
-            } else {
-                return file1;
-            }
+            //Find the file with most recent DateTime
+            mostRecentFile = (file2.LastEditDateTime > file1.LastEditDateTime) ? file2 : file1;
+            
+            return mostRecentFile;
         }
 
         private class HCloudAction {
